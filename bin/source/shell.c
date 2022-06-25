@@ -195,8 +195,21 @@ char **tokenize_line_stdin(char *line) {
     // 3. Store the address to first letter of each word in the command in tokens
     // 4. Add NULL termination in tokens so we know how many "valid" addresses there are in tokens
     /***** BEGIN ANSWER HERE *****/
-
+    token = (char *)strtok(line, SHELL_INPUT_DELIM);
+    tokens = (char **) tokens;
+    if (!token) {
+        return tokens;
+    }
+    while (token != NULL) {
+        tokens[position] = (char*) malloc(sizeof(token));
+        tokens[position] = token;
+        position++;
+//        tokens = (char**) realloc(tokens, sizeof(char *) * position);
+// no need reallocate... they allocate enough space alr
+        token = (char*) strtok(NULL, SHELL_INPUT_DELIM);
+    }
     /*********************/
+
 
     return tokens;
 }
@@ -245,20 +258,34 @@ void main_loop(void) {
     } while (status);
 }
 
-int main(int argc, char **argv) {
+//int main(int argc, char **argv) {
+//
+//    printf("CSEShell Run successful. Running now: \n");
+//
+//    // Setup path
+//    if (getcwd(output_file_path, sizeof(output_file_path)) != NULL) {
+//        printf("Current working dir: %s\n", output_file_path);
+//    } else {
+//        perror("getcwd() error, exiting now.");
+//        return 1;
+//    }
+//
+//    // Run command loop
+//    main_loop();
+//
+//    return 0;
+//}
+int main(int argc, char **argv)
+{
 
-    printf("CSEShell Run successful. Running now: \n");
+    printf("Shell Run successful. Running now: \n");
 
-    // Setup path
-    if (getcwd(output_file_path, sizeof(output_file_path)) != NULL) {
-        printf("Current working dir: %s\n", output_file_path);
-    } else {
-        perror("getcwd() error, exiting now.");
-        return 1;
-    }
+    char* line = read_line_stdin();
+    printf("The fetched line is : %s \n", line);
 
-    // Run command loop
-    main_loop();
+    char** args = tokenize_line_stdin(line);
+    printf("The first token is %s \n", args[0]);
+    printf("The second token is %s \n", args[1]);
 
     return 0;
 }
