@@ -9,8 +9,7 @@
 char output_file_path[PATH_MAX];
 
 /*This function summons a daemon process out of the current process*/
-static int create_daemon()
-{
+static int create_daemon() {
 
     /* TASK 6 */
     // Incantation on creating a daemon with fork() twice
@@ -26,35 +25,58 @@ static int create_daemon()
     // 9. Return to main
     // DO NOT PRINT ANYTHING TO THE OUTPUT
     /***** BEGIN ANSWER HERE *****/
+    pid_t pid = fork();
+    if (pid == 0) {
+        setsid();
+        signal(SIGCHLD, SIG_IGN);
+        signal(SIGHUP, SIG_IGN);
+        pid_t pid_2 = fork();
+        if (pid_2 == 0) {
+            umask(0);
+            chdir("/");
+
+            /* Close all open file descriptors */
+            int x;
+            for (x = sysconf(_SC_OPEN_MAX); x >= 0; x--) {
+                close(x);
+            }
+
+            /*
+            * Attach file descriptors 0, 1, and 2 to /dev/null. */
+            int fd0 = open("/dev/null", O_RDWR);
+            int fd1 = dup(0);
+            int fd2 = dup(0);
+        } else if (pid_2 > 0) {
+            exit(1);
+        }
+    } else if (pid > 0) {
+        exit(1);
+    }
 
     /*********************/
 
     return 0;
 }
 
-static int daemon_work()
-{
+static int daemon_work() {
 
     int num = 0;
     FILE *fptr;
 
     // write PID of daemon in the beginning
     fptr = fopen(output_file_path, "a");
-    if (fptr == NULL)
-    {
+    if (fptr == NULL) {
         return EXIT_FAILURE;
     }
 
     fprintf(fptr, "%d with FD %d\n", getpid(), fileno(fptr));
     fclose(fptr);
 
-    while (1)
-    {
+    while (1) {
 
         fptr = fopen(output_file_path, "a");
 
-        if (fptr == NULL)
-        {
+        if (fptr == NULL) {
             return EXIT_FAILURE;
         }
 
@@ -71,11 +93,10 @@ static int daemon_work()
 
     return EXIT_SUCCESS;
 }
-int main(int argc, char **args)
-{
+
+int main(int argc, char **args) {
     // Setup path
-    if (getcwd(output_file_path, sizeof(output_file_path)) == NULL)
-    {
+    if (getcwd(output_file_path, sizeof(output_file_path)) == NULL) {
         perror("getcwd() error, exiting now.");
         return 1;
     }
