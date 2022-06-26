@@ -146,6 +146,30 @@ int process_command(char **args) {
     // DO NOT PRINT ANYTHING TO THE OUTPUT
 
     /***** BEGIN ANSWER HERE *****/
+    if (args[0] == NULL) {
+        return 1;
+    }
+    if (strcmp(args[0], "cd") == 0) {
+        return shell_cd(args);
+    } else if (strcmp(args[0], "help") == 0) {
+        return shell_help(args);
+    } else if (strcmp(args[0], "exit") == 0) {
+        return shell_exit(args);
+    } else if (strcmp(args[0], "usage") == 0) {
+        return shell_usage(args);
+    } else {
+        pid_t pid = fork();
+        if (pid == 0) {
+            return exec_sys_prog(args);
+        } else if (pid > 0) {
+            int status;
+            waitpid(pid, &status, WUNTRACED);
+            // if child terminates properly, WIFEXITED(status) returns TRUE
+            if (WIFEXITED(status)) {
+                child_exit_status = WEXITSTATUS(status);
+            }
+        }
+    }
 
     /*********************/
     if (child_exit_status != 1) {
@@ -195,18 +219,18 @@ char **tokenize_line_stdin(char *line) {
     // 3. Store the address to first letter of each word in the command in tokens
     // 4. Add NULL termination in tokens so we know how many "valid" addresses there are in tokens
     /***** BEGIN ANSWER HERE *****/
-    token = (char *)strtok(line, SHELL_INPUT_DELIM);
+    token = (char *) strtok(line, SHELL_INPUT_DELIM);
     tokens = (char **) tokens;
     if (!token) {
         return tokens;
     }
     while (token != NULL) {
-        tokens[position] = (char*) malloc(sizeof(token));
+        tokens[position] = (char *) malloc(sizeof(token));
         tokens[position] = token;
         position++;
 //        tokens = (char**) realloc(tokens, sizeof(char *) * position);
 // no need reallocate... they allocate enough space alr
-        token = (char*) strtok(NULL, SHELL_INPUT_DELIM);
+        token = (char *) strtok(NULL, SHELL_INPUT_DELIM);
     }
     /*********************/
 
@@ -275,17 +299,25 @@ void main_loop(void) {
 //
 //    return 0;
 //}
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 
     printf("Shell Run successful. Running now: \n");
 
-    char* line = read_line_stdin();
+    char *line = read_line_stdin();
     printf("The fetched line is : %s \n", line);
 
-    char** args = tokenize_line_stdin(line);
+    char **args = tokenize_line_stdin(line);
     printf("The first token is %s \n", args[0]);
     printf("The second token is %s \n", args[1]);
+
+    // Setup path
+    if (getcwd(output_file_path, sizeof(output_file_path)) != NULL) {
+        printf("Current working dir: %s\n", output_file_path);
+    } else {
+        perror("getcwd() error, exiting now.");
+        return 1;
+    }
+    process_command(args);
 
     return 0;
 }
