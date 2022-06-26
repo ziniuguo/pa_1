@@ -158,7 +158,7 @@ int process_command(char **args) {
     } else if (strcmp(args[0], "usage") == 0) {
         return shell_usage(args);
     } else {
-        pid_t pid = fork();
+        int pid = fork();
         if (pid == 0) {
             return exec_sys_prog(args);
         } else if (pid > 0) {
@@ -276,39 +276,21 @@ void main_loop(void) {
         fflush(stdout); // clear the buffer and move the output to the console using fflush
 
         /***** BEGIN ANSWER HERE *****/
-        status = shell_exit(args); // remove this line when you work on this task
+//        status = shell_exit(args); // remove this line when you work on this task
+
+        line = read_line_stdin();
+        args = tokenize_line_stdin(line);
+        status = process_command(args);
+        free(line);
+        free(args);
 
         /*********************/
     } while (status);
 }
 
-//int main(int argc, char **argv) {
-//
-//    printf("CSEShell Run successful. Running now: \n");
-//
-//    // Setup path
-//    if (getcwd(output_file_path, sizeof(output_file_path)) != NULL) {
-//        printf("Current working dir: %s\n", output_file_path);
-//    } else {
-//        perror("getcwd() error, exiting now.");
-//        return 1;
-//    }
-//
-//    // Run command loop
-//    main_loop();
-//
-//    return 0;
-//}
 int main(int argc, char **argv) {
 
-    printf("Shell Run successful. Running now: \n");
-
-    char *line = read_line_stdin();
-    printf("The fetched line is : %s \n", line);
-
-    char **args = tokenize_line_stdin(line);
-    printf("The first token is %s \n", args[0]);
-    printf("The second token is %s \n", args[1]);
+    printf("CSEShell Run successful. Running now: \n");
 
     // Setup path
     if (getcwd(output_file_path, sizeof(output_file_path)) != NULL) {
@@ -317,7 +299,9 @@ int main(int argc, char **argv) {
         perror("getcwd() error, exiting now.");
         return 1;
     }
-    process_command(args);
+
+    // Run command loop
+    main_loop();
 
     return 0;
 }
