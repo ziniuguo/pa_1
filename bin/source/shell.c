@@ -170,7 +170,6 @@ int process_command(char **args) {
             }
         }
     }
-
     /*********************/
     if (child_exit_status != 1) {
         printf("Command %s has terminated abruptly.\n", args[0]);
@@ -193,8 +192,7 @@ char *read_line_stdin(void) {
 
     /***** BEGIN ANSWER HERE *****/
     if (line != NULL) {
-        buf_size = getline(&line, &buf_size, stdin);
-
+        getline(&line, &buf_size, stdin);
     }
     /*********************/
 
@@ -219,21 +217,18 @@ char **tokenize_line_stdin(char *line) {
     // 3. Store the address to first letter of each word in the command in tokens
     // 4. Add NULL termination in tokens so we know how many "valid" addresses there are in tokens
     /***** BEGIN ANSWER HERE *****/
-    token = (char *) strtok(line, SHELL_INPUT_DELIM);
-    tokens = (char **) tokens;
-    if (!token) {
+    current_number_tokens = 0;
+    if (tokens == NULL) {
         return tokens;
     }
+    token = strtok(line, SHELL_INPUT_DELIM);
     while (token != NULL) {
-        tokens[position] = (char *) malloc(sizeof(token));
-        tokens[position] = token;
-        position++;
-//        tokens = (char**) realloc(tokens, sizeof(char *) * position);
-// no need reallocate... they allocate enough space alr
-        token = (char *) strtok(NULL, SHELL_INPUT_DELIM);
+        tokens[current_number_tokens] = token;
+        token = strtok(NULL, SHELL_INPUT_DELIM);
+        current_number_tokens++;
     }
+    tokens[current_number_tokens] = NULL;
     /*********************/
-
 
     return tokens;
 }
@@ -277,13 +272,11 @@ void main_loop(void) {
 
         /***** BEGIN ANSWER HERE *****/
 //        status = shell_exit(args); // remove this line when you work on this task
-
         line = read_line_stdin();
         args = tokenize_line_stdin(line);
         status = process_command(args);
         free(line);
         free(args);
-
         /*********************/
     } while (status);
 }
